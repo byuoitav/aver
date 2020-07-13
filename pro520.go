@@ -43,7 +43,7 @@ func (c *Pro520) Stream(ctx context.Context) (chan image.Image, chan error, erro
 	images := make(chan image.Image)
 	errs := make(chan error)
 	go func() {
-		ticker := time.NewTicker(100 * time.Millisecond)
+		ticker := time.NewTicker(125 * time.Millisecond)
 		defer ticker.Stop()
 
 		for {
@@ -66,7 +66,7 @@ func (c *Pro520) Stream(ctx context.Context) (chan image.Image, chan error, erro
 }
 
 func (c *Pro520) getLiveImage(ctx context.Context, token string) (image.Image, error) {
-	ctx, cancel := context.WithTimeout(ctx, 1*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, 500*time.Millisecond)
 	defer cancel()
 
 	url := fmt.Sprintf("http://%s:81/live", c.Address)
@@ -76,7 +76,7 @@ func (c *Pro520) getLiveImage(ctx context.Context, token string) (image.Image, e
 		return nil, fmt.Errorf("unable to build request: %w", err)
 	}
 
-	req.Header.Add("Authorization", "bearer "+token)
+	req.Header.Add("Authorization", "Bearer "+token)
 
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
