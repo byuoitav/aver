@@ -6,11 +6,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"image"
+	_ "image/jpeg"
 	"io/ioutil"
 	"net/http"
+	"strconv"
 	"time"
-
-	_ "image/jpeg"
 
 	"github.com/byuoitav/visca"
 )
@@ -23,15 +23,37 @@ type Pro520 struct {
 	Password string
 }
 
-type pro520Login struct {
-	Name     string `json:"name"`
-	Password string `json:"password"`
+func (c *Pro520) TiltUp(ctx context.Context) error {
+	return c.Camera.TiltUp(ctx, 0x0e)
 }
 
-type pro520Token struct {
-	Data struct {
-		Token string `json:"token"`
-	} `json:"data"`
+func (c *Pro520) TiltDown(ctx context.Context) error {
+	return c.Camera.TiltDown(ctx, 0x0e)
+}
+
+func (c *Pro520) PanLeft(ctx context.Context) error {
+	return c.Camera.PanLeft(ctx, 0x0b)
+}
+
+func (c *Pro520) PanRight(ctx context.Context) error {
+	return c.Camera.PanRight(ctx, 0x0b)
+}
+
+func (c *Pro520) GoToPreset(ctx context.Context, preset string) error {
+	channel, err := strconv.Atoi(preset)
+	if err != nil {
+		return fmt.Errorf("unable to convert preset to channel: %w", err)
+	}
+
+	return c.Camera.MemoryRecall(ctx, byte(channel))
+}
+
+func (c *Pro520) ZoomIn(ctx context.Context) error {
+	return c.Camera.ZoomTele(ctx)
+}
+
+func (c *Pro520) ZoomOut(ctx context.Context) error {
+	return c.Camera.ZoomWide(ctx)
 }
 
 func (c *Pro520) Stream(ctx context.Context) (chan image.Image, chan error, error) {
@@ -90,6 +112,17 @@ func (c *Pro520) getLiveImage(ctx context.Context, token string) (image.Image, e
 	}
 
 	return image, nil
+}
+
+type pro520Login struct {
+	Name     string `json:"name"`
+	Password string `json:"password"`
+}
+
+type pro520Token struct {
+	Data struct {
+		Token string `json:"token"`
+	} `json:"data"`
 }
 
 func (c *Pro520) getToken(ctx context.Context) (string, error) {
