@@ -87,6 +87,15 @@ func (c *Pro520) Stream(ctx context.Context) (chan image.Image, chan error, erro
 	return images, errs, nil
 }
 
+func (c *Pro520) Snapshot(ctx context.Context) (image.Image, error) {
+	tok, err := c.getToken(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("unable to login to camera: %w", err)
+	}
+
+	return c.getLiveImage(ctx, tok)
+}
+
 func (c *Pro520) getLiveImage(ctx context.Context, token string) (image.Image, error) {
 	ctx, cancel := context.WithTimeout(ctx, 500*time.Millisecond)
 	defer cancel()
