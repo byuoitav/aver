@@ -96,6 +96,35 @@ func (c *Pro520) Snapshot(ctx context.Context) (image.Image, error) {
 	return c.getLiveImage(ctx, tok)
 }
 
+func (c *Pro520) Preset(ctx context.Context, preset string) (image.Image, error) {
+	tok, err := c.getToken(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("unable to login to camera: %w", err)
+	}
+
+	url := fmt.Sprintf("http://%s:81/preset/preset_%s.jpg", c.Address, preset)
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
+	if err != nil {
+		return nil, fmt.Errorf("unable to build request: %w", err)
+	}
+
+	req.Header.Add("Authorization", "Bearer "+tok)
+
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("unable to make request: %w", err)
+	}
+	defer resp.Body.Close()
+
+	image, _, err := image.Decode(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("unable to decode image: %w", err)
+	}
+
+	return image, nil
+}
+
 func (c *Pro520) getLiveImage(ctx context.Context, token string) (image.Image, error) {
 	ctx, cancel := context.WithTimeout(ctx, 500*time.Millisecond)
 	defer cancel()
