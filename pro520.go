@@ -125,6 +125,62 @@ func (c *Pro520) Preset(ctx context.Context, preset string) (image.Image, error)
 	return image, nil
 }
 
+func (c *Pro520) SetPreset(ctx context.Context, preset int) error {
+	tok, err := c.getToken(ctx)
+	if err != nil {
+		return fmt.Errorf("unable to login to camera: %w", err)
+	}
+
+	url := fmt.Sprintf("http://%s/camera_preset", c.Address)
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, nil)
+	if err != nil {
+		return fmt.Errorf("unable to build request: %w", err)
+	}
+
+	req.Header.Add("Authorization", "Bearer "+tok)
+
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return fmt.Errorf("unable to make request: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode/100 != 2 {
+		return fmt.Errorf("unable to set preset, bad statuscode received: %v", resp.StatusCode)
+	}
+
+	return nil
+}
+
+func (c *Pro520) Reboot(ctx context.Context) error {
+	tok, err := c.getToken(ctx)
+	if err != nil {
+		return fmt.Errorf("unable to login to camera: %w", err)
+	}
+
+	url := fmt.Sprintf("http://%s/reboot", c.Address)
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, nil)
+	if err != nil {
+		return fmt.Errorf("unable to build request: %w", err)
+	}
+
+	req.Header.Add("Authorization", "Bearer "+tok)
+
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return fmt.Errorf("unable to make request: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode/100 != 2 {
+		return fmt.Errorf("unable to reboot camera, bad statuscode received: %v", resp.StatusCode)
+	}
+
+	return nil
+}
+
 func (c *Pro520) getLiveImage(ctx context.Context, token string) (image.Image, error) {
 	ctx, cancel := context.WithTimeout(ctx, 500*time.Millisecond)
 	defer cancel()
