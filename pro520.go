@@ -134,7 +134,7 @@ func (c *Pro520) SetPreset(ctx context.Context, preset int) error {
 
 	url := fmt.Sprintf("http://%s/camera_preset", c.Address)
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, strings.NewReader(fmt.Sprintf(`{"method": "SetPreset", "id": %d, "operate" 1}`, preset)))
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, strings.NewReader(fmt.Sprintf(`{"method": "SetPreset", "id": %d, "operate": 1}`, preset)))
 	if err != nil {
 		return fmt.Errorf("unable to build request: %w", err)
 	}
@@ -147,8 +147,13 @@ func (c *Pro520) SetPreset(ctx context.Context, preset int) error {
 	}
 	defer resp.Body.Close()
 
+	respBody, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return fmt.Errorf("unable to read response: %w", err)
+	}
+
 	if resp.StatusCode/100 != 2 {
-		return fmt.Errorf("unable to set preset, bad statuscode received: %v", resp.StatusCode)
+		return fmt.Errorf("unable to set preset, bad statuscode received: %s", respBody)
 	}
 
 	return nil
@@ -175,8 +180,13 @@ func (c *Pro520) Reboot(ctx context.Context) error {
 	}
 	defer resp.Body.Close()
 
+	respBody, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return fmt.Errorf("unable to read response: %w", err)
+	}
+
 	if resp.StatusCode/100 != 2 {
-		return fmt.Errorf("unable to reboot camera, bad statuscode received: %v", resp.StatusCode)
+		return fmt.Errorf("unable to reboot camera, bad statuscode : %s", respBody)
 	}
 
 	return nil
