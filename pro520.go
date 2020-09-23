@@ -10,6 +10,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/byuoitav/visca"
@@ -133,7 +134,7 @@ func (c *Pro520) SetPreset(ctx context.Context, preset int) error {
 
 	url := fmt.Sprintf("http://%s/camera_preset", c.Address)
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, strings.NewReader(fmt.Sprintf(`{"method": "SetPreset", "id": %d, "operate" 1}`, preset)))
 	if err != nil {
 		return fmt.Errorf("unable to build request: %w", err)
 	}
