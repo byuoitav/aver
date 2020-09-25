@@ -68,6 +68,8 @@ func (c *Pro520) Stream(ctx context.Context) (chan image.Image, chan error, erro
 	go func() {
 		ticker := time.NewTicker(125 * time.Millisecond)
 		defer ticker.Stop()
+		defer close(images)
+		defer close(errs)
 
 		for {
 			select {
@@ -94,11 +96,13 @@ func (c *Pro520) StreamJPEG(ctx context.Context) (chan []byte, chan error, error
 		return nil, nil, fmt.Errorf("unable to login to camera: %w", err)
 	}
 
-	images := make(chan []byte)
+	jpegs := make(chan []byte)
 	errs := make(chan error)
 	go func() {
 		ticker := time.NewTicker(125 * time.Millisecond)
 		defer ticker.Stop()
+		defer close(jpegs)
+		defer close(errs)
 
 		for {
 			select {
@@ -109,14 +113,14 @@ func (c *Pro520) StreamJPEG(ctx context.Context) (chan []byte, chan error, error
 					continue
 				}
 
-				images <- image
+				jpegs <- image
 			case <-ctx.Done():
 				return
 			}
 		}
 	}()
 
-	return images, errs, nil
+	return jpegs, errs, nil
 }
 
 func (c *Pro520) Snapshot(ctx context.Context) (image.Image, error) {
