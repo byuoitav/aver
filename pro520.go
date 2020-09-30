@@ -24,6 +24,10 @@ type Pro520 struct {
 	Password string
 }
 
+func (c *Pro520) RemoteAddr() string {
+	return c.Address
+}
+
 func (c *Pro520) TiltUp(ctx context.Context) error {
 	return c.Camera.TiltUp(ctx, 0x0e)
 }
