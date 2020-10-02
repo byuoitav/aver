@@ -10,7 +10,6 @@ import (
 	"io/ioutil"
 	"net/http"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/byuoitav/visca"
@@ -51,6 +50,15 @@ func (c *Pro520) GoToPreset(ctx context.Context, preset string) error {
 	}
 
 	return c.Camera.MemoryRecall(ctx, byte(channel))
+}
+
+func (c *Pro520) SetPreset(ctx context.Context, preset string) error {
+	channel, err := strconv.Atoi(preset)
+	if err != nil {
+		return fmt.Errorf("unable to convert preset to channel: %w", err)
+	}
+
+	return c.Camera.MemorySet(ctx, byte(channel))
 }
 
 func (c *Pro520) ZoomIn(ctx context.Context) error {
@@ -163,34 +171,6 @@ func (c *Pro520) Preset(ctx context.Context, preset string) (image.Image, error)
 	}
 
 	return image, nil
-}
-
-func (c *Pro520) SetPreset(ctx context.Context, preset int) error {
-	tok, err := c.getToken(ctx)
-	if err != nil {
-		return fmt.Errorf("unable to login to camera: %w", err)
-	}
-
-	url := fmt.Sprintf("http://%s/camera_preset", c.Address)
-
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, strings.NewReader(fmt.Sprintf(`{"method": "SetPreset", "id": %d, "operate": 1}`, preset)))
-	if err != nil {
-		return fmt.Errorf("unable to build request: %w", err)
-	}
-
-	req.Header.Add("Authorization", "Bearer "+tok)
-
-	resp, err := http.DefaultClient.Do(req)
-	if err != nil {
-		return fmt.Errorf("unable to make request: %w", err)
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode/100 != 2 {
-		return fmt.Errorf("statuscode %d", resp.StatusCode)
-	}
-
-	return nil
 }
 
 func (c *Pro520) Reboot(ctx context.Context) error {
